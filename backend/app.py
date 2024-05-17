@@ -1,5 +1,6 @@
 from flask import Flask
 
+# basic config
 app = Flask(__name__)
 
 # Default route   
