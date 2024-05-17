@@ -6,3 +6,6 @@ To run Frontend:
 To run Backend
 -cd backend
 -flask run
+
+For Contributing:
+-contribute all changes i.e frontend/backend to "develop" branch 
