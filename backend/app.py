@@ -1,7 +1,11 @@
 from flask import Flask, request, jsonify
+import datetime
+import jwt
 from flask_sqlalchemy import SQLAlchemy
 import hashlib
 import re  # Import regular expressions library for pattern matching
+import os
+SECRET_KEY = os.environ.get("SECRET_KEY", "#")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -61,7 +65,12 @@ def login():
 
     user = User.query.filter_by(username=username, password=hashed_password).first()
     if user:
-        return jsonify({"message": "Login successful"}), 200
+        payload = {
+            'username': username,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
+        }
+        token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+        return jsonify({"message": "Login successful", "token": token}), 200
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
@@ -74,6 +83,34 @@ def check_username():
         return jsonify({"exists": True}), 200
     else:
         return jsonify({"exists": False}), 200
+
+
+# Create a new JWT token endpoint
+# @app.route('/createNewToken', methods=['POST'])
+# def create_new_token():
+#     username = request.json['username']
+#     user = User.query.filter_by(username=username).first()
+#     if user:
+#         payload = {
+#             'username': username,
+#             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
+#         }
+#         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+#         return jsonify({"token": token}), 200
+#     else:
+#         return jsonify({"error": "User not found"}), 404
+
+# Verify JWT token endpoint
+@app.route('/verifyToken', methods=['POST'])
+def verify_token():
+    token = request.json['token']
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        return jsonify({"message": "Token is valid", "username": payload['username']}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token has expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
 
 # Run the Flask app
 if __name__ == '__main__':
