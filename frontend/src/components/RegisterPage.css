@@ -1,0 +1,74 @@
+.register-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #f5f5dc;
+    background-image: url('../../public/image.png');
+    background-repeat: no-repeat;
+    background-position: bottom;
+    background-size: cover;
+    position: relative;
+}
+
+.register-form {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    z-index: 1;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.register-form h2 {
+    margin-bottom: 20px;
+    color: #0000ff;
+    font-weight: bold;
+}
+
+.register-form form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.register-form label {
+    font-weight: bold;
+    color: #0000ff;
+}
+
+.register-form input {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+.register-form button {
+    background-color: #ffcc99;
+    color: #000000;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.register-form button:hover {
+    background-color: #ff6347;
+}
+
+.register-form a {
+    margin-top: 10px;
+    display: inline-block;
+    color: #0000ff;
+    text-decoration: none;
+}
+
+.register-form a:hover {
+    text-decoration: underline;
+}

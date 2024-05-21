@@ -1,0 +1,130 @@
+/* body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+} */
+
+/* Reset some default styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* Body styling */
+body {
+  background-color: #f4f4f4;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Container styling */
+.container {
+  width: 80%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+/* Header styling */
+header {
+  background: #35424a;
+  color: #ffffff;
+  padding: 20px 0;
+  text-align: center;
+}
+
+/* Page headers */
+h1,
+h2 {
+  margin-bottom: 20px;
+  color: #35424a;
+}
+
+/* Links */
+a {
+  color: #35424a;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Button styling */
+.button {
+  display: inline-block;
+  background: #35424a;
+  color: #ffffff;
+  padding: 10px 20px;
+  margin: 10px 0;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.button:hover {
+  background: #3d5c6b;
+}
+
+/* Form styling */
+form {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Page specific styling */
+.home-page {
+  text-align: center;
+  padding: 50px 0;
+}
+
+.login-page,
+.register-page {
+  max-width: 400px;
+  margin: 50px auto;
+}
+
+.user-details {
+  padding: 20px;
+}
+
+.user-details header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-details section {
+  margin: 20px 0;
+}
+
+.user-details footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
