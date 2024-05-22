@@ -6,9 +6,10 @@ import hashlib
 import re  # Import regular expressions library for pattern matching
 import os
 import sqlite3
+import secrets
 
 # Config File
-SECRET_KEY = "secretkey123"
+SECRET_KEY =secrets.token_hex(16) 
 DB_URL = 'sqlite:///bank.db'
 DATABASE = './instance/bank.db'
 
@@ -73,8 +74,8 @@ def create_new_user():
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username already exists"}), 409
 
-    hashed_password = hashlib.md5(password.encode()).hexdigest()
-    new_user = User(username=username, password=hashed_password)
+    #hashed_password = hashlib.md5(password.encode()).hexdigest()
+    new_user = User(username=username, password=password)
     db.session.add(new_user)
     db.session.commit()
     createUserWithEmptyBalance(username)
@@ -86,9 +87,9 @@ def create_new_user():
 def login():
     username = request.json['username']
     password = request.json['password']
-    hashed_password = hashlib.md5(password.encode()).hexdigest()
+    #hashed_password = hashlib.md5(password.encode()).hexdigest()
 
-    user = User.query.filter_by(username=username, password=hashed_password).first()
+    user = User.query.filter_by(username=username, password=password).first()
     if user:
         payload = {
             'username': username,
@@ -124,14 +125,13 @@ def create_new_token():
         return jsonify({"error": "User not found"}), 404
 
 # Verify JWT token endpoint
-@app.route('/verifyToken', methods=['POST'])
-def verify_token():
-    token = request.json['token']
+def verify_token(username, token):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+        fetched_username = payload.get('username')
+        if username != fetched_username:
+            raise Exception("Invalid User")
         return jsonify({"message": "Token is valid", "username": payload['username']}), 200
-    except jwt.ExpiredSignatureError:
-        return jsonify({"error": "Token has expired"}), 401
     except jwt.InvalidTokenError:
         return jsonify({"error": "Invalid token"}), 401
 
@@ -221,7 +221,10 @@ def transfer_money():
 # Checks current balance of a user
 @app.route('/get_balance', methods=['GET'])
 def get_balance():
+    data = request.get_json()
     username = request.args.get('username')
+    token = data.get("token")
+    verify_token(username,token)
     if not username:
         return jsonify({'error': 'Username is required'}), 400
     with get_db() as conn:
