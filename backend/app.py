@@ -6,6 +6,7 @@ import hashlib
 import re  # Import regular expressions library for pattern matching
 import os
 import sqlite3
+from flask_cors import CORS, cross_origin
 import secrets
 
 # Config File
@@ -15,6 +16,7 @@ DATABASE = './instance/bank.db'
 
 # Initialize Flask app
 app = Flask(__name__)
+CORS(app)  #enabling CORS for all routes and origins
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] =  DB_URL
@@ -91,6 +93,7 @@ def login():
 
     user = User.query.filter_by(username=username, password=password).first()
     if user:
+        #payload has username and expiry time check
         payload = {
             'username': username,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
