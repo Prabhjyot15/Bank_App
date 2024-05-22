@@ -1,0 +1,87 @@
+body,
+html {
+    height: 100%;
+    margin: 0;
+}
+
+.user-details-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.header {
+    background-color: #add8e6;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header h1 {
+    margin: 0;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.logout-button {
+    background-color: white;
+    color: black;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: bold;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #ff6347;
+}
+
+.content {
+    display: flex;
+    flex-grow: 1;
+}
+
+.user-details {
+    flex: 1;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 18px;
+    color: black;
+    padding: 20px;
+}
+
+.user-details footer {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-action-button {
+    background-color:#add8e6;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+    transition: background-color 0.3s ease;
+}
+
+.user-action-button:hover {
+    background-color: pink;
+}
+
+.user-image {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('../../public/user-details.jpg');
+    background-size: cover;
+    background-position: center;
+}

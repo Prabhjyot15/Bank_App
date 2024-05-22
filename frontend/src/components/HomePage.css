@@ -1,0 +1,55 @@
+.home-page {
+    display: flex;
+    height: 100vh;
+    background-color: #fdf5e6;
+    color: #000000;
+}
+
+.left-container {
+    width: 25%;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.welcome-message {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 2em;
+    font-weight: bold;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.button {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #ffcc99;
+    color: #000000;
+    text-align: center;
+    padding: 10px;
+    text-decoration: none;
+    font-size: 1.2em;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #ff6347;
+    color: #ffffff;
+}
+
+.right-container {
+    width: 75%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bank-image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
