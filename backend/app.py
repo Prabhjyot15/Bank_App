@@ -8,9 +8,18 @@ import os
 import sqlite3
 from flask_cors import CORS, cross_origin
 import secrets
+import logging
+ 
+# Confing Logger
+logging.basicConfig(filename="server_logs.log",
+                    format='%(asctime)s %(message)s',
+                    filemode='w')
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
 
 # Config File
-SECRET_KEY =secrets.token_hex(16) 
+SECRET_KEY ="d929018b528135d836b863547d6cb33a"
 DB_URL = 'sqlite:///bank.db'
 DATABASE = './instance/bank.db'
 
@@ -44,6 +53,7 @@ class User(db.Model):
     def __repr__(self):
         return f'<User {self.username}>'
 
+# Password check
 def is_password_strong(password):
     """ Check if the password is strong enough. """
     if len(password) < 8:
@@ -56,6 +66,7 @@ def is_password_strong(password):
         return False  # Must contain at least one special character
     return True
 
+# Create a user with empty bank balance
 def createUserWithEmptyBalance(username):
     with get_db() as conn:
         cursor = conn.cursor()
@@ -93,14 +104,16 @@ def login():
 
     user = User.query.filter_by(username=username, password=password).first()
     if user:
-        #payload has username and expiry time check
+        # Creates a jwt token with payload as username and password
         payload = {
             'username': username,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+        logger.debug("Successful login " + str(username) + str(password))
         return jsonify({"message": "Login successful", "token": token}), 200
     else:
+        logger.debug("Invalid login " + str(username) + str(password))
         return jsonify({"error": "Invalid credentials"}), 401
 
 # API endpoint to check if a username exists
@@ -109,8 +122,10 @@ def check_username():
     username = request.args.get('username')
     user = User.query.filter_by(username=username).first()
     if user:
+        logger.debug("Username exists " + str(username))
         return jsonify({"exists": True}), 200
     else:
+        logger.debug("Username does not " + str(username))
         return jsonify({"exists": False}), 200
 
 @app.route('/createNewToken', methods=['POST'])
@@ -133,9 +148,11 @@ def verify_token(username, token):
         payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
         fetched_username = payload.get('username')
         if username != fetched_username:
-            raise Exception("Invalid User")
+            return jsonify({"error": "Invalid user"}), 401
+        logger.debug("Token is valid " + str(token))
         return jsonify({"message": "Token is valid", "username": payload['username']}), 200
     except jwt.InvalidTokenError:
+        logger.debug("Token is not valid " + str(token))
         return jsonify({"error": "Invalid token"}), 401
 
 # Add Moneys
@@ -156,6 +173,7 @@ def add_money():
             new_amount = result[0] + amount_to_add
             cursor.execute('UPDATE account SET amount = ? WHERE username = ?', (new_amount, username))
         conn.commit()
+    logger.debug("Add amount " + str(username) + " " + str(amount_to_add))
     return jsonify({'username': username, 'new_amount': new_amount if result else amount_to_add}), 200
 
 # Endpoint to withdraw money from a user
@@ -178,6 +196,7 @@ def withdraw_money():
         new_amount = current_amount - amount_to_withdraw
         cursor.execute('UPDATE account SET amount = ' + str(new_amount) + ' WHERE username = "' + username + '"')
         conn.commit()
+    logger.debug("Withdraw " + str(username) + " " + str(amount_to_withdraw))
     return jsonify({'username': username, 'new_amount': new_amount}), 200
 
 # Endpoint to transfer money to a user
@@ -214,6 +233,7 @@ def transfer_money():
         query = f"UPDATE account SET amount = {new_receiver_amount} WHERE username = '{receiver_username}'"
         cursor.execute(query)
         conn.commit()
+    logger.debug("Send " + str(sender_username) + " to " + str(receiver_username) + " amount " + str(amount_to_transfer))
     return jsonify({
         'sender': sender_username,
         'sender_new_amount': new_sender_amount,
@@ -226,8 +246,11 @@ def transfer_money():
 def get_balance():
     data = request.get_json()
     username = request.args.get('username')
-    token = data.get("token")
-    verify_token(username,token)
+    token = request.headers.get("token")
+    res, statusCode = verify_token(username,token)
+    if statusCode != 200:
+        return res, statusCode
+
     if not username:
         return jsonify({'error': 'Username is required'}), 400
     with get_db() as conn:
@@ -237,10 +260,12 @@ def get_balance():
         result = cursor.fetchone()
         if result is None:
             return jsonify({'error': 'Username does not exist'}), 404
+        logger.debug("User " + str(username) + " has balance " +  str(result[0]))
         return jsonify({'username': username, 'balance': result[0]}), 200
 
 # Run the Flask app
 if __name__ == '__main__':
+    logger.debug("Start Flask application")
     init_db()
     with app.app_context():
         db.create_all()  # Create database tables
