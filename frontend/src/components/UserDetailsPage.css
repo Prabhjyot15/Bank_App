@@ -58,8 +58,30 @@ html {
     flex-direction: column;
 }
 
+.action-box {
+    background-color: #f0f8ff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
+
+.action-box h2 {
+    margin-top: 0;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.action-box input {
+    display: block;
+    width: calc(100% - 20px);
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
 .user-action-button {
-    background-color:#add8e6;
+    background-color: #add8e6;
     color: white;
     padding: 15px;
     border: none;
@@ -68,7 +90,6 @@ html {
     font-family: 'Times New Roman', Times, serif;
     font-weight: bold;
     font-size: 16px;
-    margin-bottom: 10px;
     transition: background-color 0.3s ease;
 }
 
