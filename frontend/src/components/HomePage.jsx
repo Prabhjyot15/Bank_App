@@ -13,7 +13,7 @@ const HomePage = () => {
         </div>
       </div>
       <div className="right-container">
-        <img src="/bank.jpg" alt="Bank Image" className="bank-image" />
+        <img src="/bank.jpg" alt="Bank" className="bank-image" />
       </div>
     </div>
   );

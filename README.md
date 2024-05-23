@@ -1,11 +1,14 @@
-python -m flask --app board run --port 8000 --debug 
 
 To run Frontend:
 -cd frontend
+-npm i
+-npm start
 
-To run Backend
+To run Backend:
 -cd backend
+for virtual env: venv/Scripts/activate
+-pip install -r requirements.txt
 -python app.py
 
 For Contributing:
--contribute all changes i.e frontend/backend to "develop" branch 
+-contribute all the changes i.e frontend/backend to "develop" branch 
