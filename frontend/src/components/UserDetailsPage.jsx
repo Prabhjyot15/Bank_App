@@ -9,6 +9,7 @@ import {
   withdrawMoneyAPI,
 } from "../utils/apiServices";
 import ErrorMessage from "./ErrorMessage";
+import Swal from "sweetalert2";
 
 const UserDetailsPage = () => {
   const [currentBalance, setCurrentBalance] = useState(null);
@@ -18,6 +19,50 @@ const UserDetailsPage = () => {
   const [receiver, setReceiver] = useState("");
   const [error, setError] = useState("");
 
+  const handleFinancialTransaction = async (type, amount, receiver = null) => {
+    try {
+      let response;
+      const numericAmount = parseFloat(amount);
+
+      switch (type) {
+        case "add":
+          response = await addMoneyAPI(username, numericAmount);
+          break;
+        case "withdraw":
+          response = await withdrawMoneyAPI(username, numericAmount);
+          break;
+        case "send":
+          response = await transferMoneyAPI(username, receiver.target.value, numericAmount);
+          break;
+        default:
+          throw new Error("Invalid transaction type");
+      }
+
+      await handleUserBalance(); // Update user balance after transaction
+      if (response)
+        Swal.fire({
+          title: "Success",
+          text: response.message,
+          icon: "success",
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          didOpen: (toast) => {
+            toast.addEventListener("mouseenter", Swal.stopTimer);
+            toast.addEventListener("mouseleave", Swal.resumeTimer);
+          },
+        });
+    } catch (error) {
+      setError(error?.response?.data?.error);
+      if (error?.response?.data?.error === "Invalid token") {
+        navigate("/login");
+        setError("");
+      }
+    }
+  };
+
   const navigate = useNavigate();
   const { logout, user } = useAuth();
 
@@ -26,33 +71,6 @@ const UserDetailsPage = () => {
   };
 
   const username = user?.username;
-  const handleAddMoney = async () => {
-    try {
-      await addMoneyAPI(username, parseFloat(addMoney));
-      await handleUserBalance();
-    } catch (error) {
-      setError(error?.response?.data?.error);
-    }
-  };
-
-  const handleWithdrawMoney = async () => {
-    try {
-      await withdrawMoneyAPI(username, parseFloat(withdrawMoney));
-      await handleUserBalance();
-    } catch (error) {
-      setError(error?.response?.data?.error);
-    }
-  };
-
-  const handleSendMoney = async () => {
-    try {
-      const numericAmount = parseFloat(transferMoney);
-      await transferMoneyAPI(username, receiver?.target?.value, numericAmount);
-      await handleUserBalance();
-    } catch (error) {
-      setError(error?.response?.data?.error);
-    }
-  };
   const handleUserBalance = async () => {
     try {
       const res = await getUserBalance(username);
@@ -97,33 +115,44 @@ const UserDetailsPage = () => {
                 placeholder="Amount in $"
                 onChange={(e) => setTransferMoney(e.target.value)}
               />
-
-              <button className="user-action-button" onClick={handleSendMoney}>
+              <button
+                className="user-action-button"
+                onClick={() =>
+                  handleFinancialTransaction("send", transferMoney, receiver)
+                }
+              >
                 Send Money
               </button>
             </div>
+
             <div className="action-box">
               <h2>Withdraw Money</h2>
               <input
                 type="number"
-                placeholder="Amount  in $"
+                placeholder="Amount in $"
                 onChange={(e) => setWithdrawMoney(e.target.value)}
               />
               <button
                 className="user-action-button"
-                onClick={handleWithdrawMoney}
+                onClick={() =>
+                  handleFinancialTransaction("withdraw", withdrawMoney)
+                }
               >
                 Withdraw Money
               </button>
             </div>
+
             <div className="action-box">
               <h2>Add Money</h2>
               <input
                 type="number"
-                placeholder="Amount  in $"
+                placeholder="Amount in $"
                 onChange={(e) => setAddMoney(e.target.value)}
               />
-              <button className="user-action-button" onClick={handleAddMoney}>
+              <button
+                className="user-action-button"
+                onClick={() => handleFinancialTransaction("add", addMoney)}
+              >
                 Add Money
               </button>
             </div>

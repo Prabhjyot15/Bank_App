@@ -1,11 +1,8 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-// import * as Sentry from '@sentry/browser'
-// import { handleError } from '@jetkit/react'
-
 
 const api = axios.create({
-  baseURL: "http://127.0.0.1:5000", // Replace with your actual backend URL
+  baseURL: "http://127.0.0.1:5000", 
   headers: {
     "Content-Type": "application/json",
   },

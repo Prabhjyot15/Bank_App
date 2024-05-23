@@ -61,7 +61,7 @@ const LoginPage = () => {
           </form>
           <Link to="/register">Register here</Link>
           <br />
-          <Link to="/">Go back</Link>
+          <Link to="/">Home</Link>
         </div>
       </div>
     </div>
