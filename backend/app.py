@@ -107,7 +107,7 @@ def login():
         # Creates a jwt token with payload as username and password
         payload = {
             'username': username,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
+            'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)  # Token expires in 1 hour
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
         logger.debug("Successful login " + str(username) + str(password))
@@ -135,7 +135,7 @@ def create_new_token():
     if user:
         payload = {
             'username': username,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
+            'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)  # Token expires in 1 hour
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
         return jsonify({"token": token}), 200
@@ -244,24 +244,34 @@ def transfer_money():
 # Checks current balance of a user
 @app.route('/get_balance', methods=['GET'])
 def get_balance():
-    data = request.get_json()
+    # Initial check for 'Authorization' header
+    authorization_header = request.headers.get("Authorization")
+    if not authorization_header:
+        return jsonify({"error": "Authorization header is missing"}), 401
+
+    token = authorization_header.split(" ")[1]  # Extracts the token part assuming 'Bearer <token>'
+    
     username = request.args.get('username')
-    token = request.headers.get("token")
-    res, statusCode = verify_token(username,token)
+    if not username:
+        return jsonify({'error': 'Username is required'}), 400
+
+    # Verify the token validity
+    res, statusCode = verify_token(username, token)
     if statusCode != 200:
         return res, statusCode
 
-    if not username:
-        return jsonify({'error': 'Username is required'}), 400
+    # Connect to database and fetch balance
     with get_db() as conn:
         cursor = conn.cursor()
         query = f"SELECT amount FROM account WHERE username = '{username}'"
         cursor.execute(query)
         result = cursor.fetchone()
-        if result is None:
-            return jsonify({'error': 'Username does not exist'}), 404
-        logger.debug("User " + str(username) + " has balance " +  str(result[0]))
-        return jsonify({'username': username, 'balance': result[0]}), 200
+        
+    if result is None:
+        return jsonify({'error': 'Username does not exist'}), 404
+
+    logger.debug("User " + str(username) + " has balance " + str(result[0]))
+    return jsonify({'username': username, 'balance': result[0]}), 200
 
 # Run the Flask app
 if __name__ == '__main__':
