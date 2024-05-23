@@ -1,23 +1,30 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './LoginPage.css'; // Import the CSS file for styling
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./LoginPage.css"; // Import the CSS file for styling
+import { useAuth } from "../common/AuthContext";
+import { loginUser } from "../utils/apiServices";
+import ErrorMessage from "./ErrorMessage";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { login } = useAuth();
 
+  const navigate = useNavigate();
+  const handleLogin = async () => {
+    try {
+      const response = await loginUser(username, password);
+        login({ username }, response.token);
+        navigate("/details");
+      
+    } catch (error) {
+      setError(error?.response?.data?.error);
+    }
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login data:', username, password);
-
-     // successful login
-    if (username === 'user' && password === 'password') {
-      localStorage.setItem('isAuthenticated', 'true');
-      navigate('/details');
-    } else {
-      alert('Invalid username or password');
-    }
+    handleLogin();
   };
 
   return (
@@ -31,18 +38,30 @@ const LoginPage = () => {
               type="text"
               id="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              onChange={(e) => {
+                setUsername(e.target.value);
+                setError("");
+              }}
             />
             <label htmlFor="password">Password:</label>
             <input
               type="password"
               id="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError("");
+              }}
+              placeholder="example@example.com"
             />
+            {error && <ErrorMessage message={error} />}
+
             <button type="submit">Login</button>
           </form>
           <Link to="/register">Register here</Link>
+          <br />
+          <Link to="/">Go back</Link>
         </div>
       </div>
     </div>
