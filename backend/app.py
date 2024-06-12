@@ -9,8 +9,8 @@ import sqlite3
 from flask_cors import CORS, cross_origin
 import secrets
 import logging
- 
-# Confing Logger
+
+# Config Logger
 logging.basicConfig(filename="server_logs.log",
                     format='%(asctime)s %(message)s',
                     filemode='w')
@@ -24,10 +24,10 @@ DATABASE = './instance/bank.db'
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  #enabling CORS for all routes and origins
+CORS(app)  # enabling CORS for all routes and origins
 
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] =  DB_URL
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -36,7 +36,7 @@ def get_db():
     conn = sqlite3.connect(DATABASE)
     return conn
 
-# Initialise database
+# Initialize database
 def init_db():
     with get_db() as conn:
         cursor = conn.cursor()
@@ -69,8 +69,8 @@ def is_password_strong(password):
 def createUserWithEmptyBalance(username):
     with get_db() as conn:
         cursor = conn.cursor()
-        amount_to_add = str(0)
-        cursor.execute("INSERT INTO account (username, amount) VALUES ('" + username + "', " + amount_to_add + ")")
+        amount_to_add = 0.0
+        cursor.execute("INSERT INTO account (username, amount) VALUES (?, ?)", (username, amount_to_add))
         conn.commit()
 
 # API endpoint to create a new user
@@ -78,7 +78,6 @@ def createUserWithEmptyBalance(username):
 def create_new_user():
     username = request.json['username']
     password = request.json['password']
-    
     # Check if the password is strong enough
     if not is_password_strong(password):
         return jsonify({"error": "Password does not meet the criteria. Must be 8 characters long, 1 digit, 1 letter and 1 special char."}), 400
@@ -86,7 +85,6 @@ def create_new_user():
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username already exists"}), 409
 
-    #hashed_password = hashlib.md5(password.encode()).hexdigest()
     new_user = User(username=username, password=password)
     db.session.add(new_user)
     db.session.commit()
@@ -99,14 +97,13 @@ def create_new_user():
 def login():
     username = request.json['username']
     password = request.json['password']
-    #hashed_password = hashlib.md5(password.encode()).hexdigest()
 
     user = User.query.filter_by(username=username, password=password).first()
     if user:
         # Creates a jwt token with payload as username and password
         payload = {
             'username': username,
-            'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)  # Token expires in 1 hour
+            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)  # Token expires in 1 hour
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
         logger.debug("Successful login " + str(username) + str(password))
@@ -134,7 +131,7 @@ def create_new_token():
     if user:
         payload = {
             'username': username,
-            'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=1)  # Token expires in 1 hour
+            'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)  # Token expires in 1 hour
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
         return jsonify({"token": token}), 200
@@ -154,7 +151,7 @@ def verify_token(username, token):
         logger.debug("Token is not valid " + str(token))
         return jsonify({"error": "Invalid token"}), 401
 
-# Add Moneys
+# Add Money
 @app.route('/add_money', methods=['POST'])
 def add_money():
     data = request.get_json()
@@ -164,10 +161,10 @@ def add_money():
         return jsonify({'error': 'Username and amount are required'}), 400
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT amount FROM account WHERE username = "' + username + '"')
+        cursor.execute('SELECT amount FROM account WHERE username = ?', (username,))
         result = cursor.fetchone()
         if result is None:
-            cursor.execute("INSERT INTO account (username, amount) VALUES ('" + username + "', " + amount_to_add + ")")
+            cursor.execute("INSERT INTO account (username, amount) VALUES (?, ?)", (username, amount_to_add))
         else:
             new_amount = result[0] + amount_to_add
             cursor.execute('UPDATE account SET amount = ? WHERE username = ?', (new_amount, username))
@@ -185,7 +182,7 @@ def withdraw_money():
         return jsonify({'error': 'Username and amount are required'}), 400
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT amount FROM account WHERE username = "' + username + '"')
+        cursor.execute('SELECT amount FROM account WHERE username = ?', (username,))
         result = cursor.fetchone()
         if result is None:
             return jsonify({'error': 'Username does not exist'}), 404
@@ -193,7 +190,7 @@ def withdraw_money():
         if current_amount < amount_to_withdraw:
             return jsonify({'error': 'Insufficient funds'}), 400
         new_amount = current_amount - amount_to_withdraw
-        cursor.execute('UPDATE account SET amount = ' + str(new_amount) + ' WHERE username = "' + username + '"')
+        cursor.execute('UPDATE account SET amount = ? WHERE username = ?', (new_amount, username))
         conn.commit()
     logger.debug("Withdraw " + str(username) + " " + str(amount_to_withdraw))
     return jsonify({'username': username, 'new_amount': new_amount}), 200
@@ -211,26 +208,22 @@ def transfer_money():
     with get_db() as conn:
         cursor = conn.cursor()
         # Check sender's balance
-        query = f"SELECT amount FROM account WHERE username = '{sender_username}'"
-        cursor.execute(query)
+        cursor.execute('SELECT amount FROM account WHERE username = ?', (sender_username,))
         sender_result = cursor.fetchone()
         if sender_result is None:
             return jsonify({'error': 'Sender does not exist'}), 404
         if sender_result[0] < amount_to_transfer:
             return jsonify({'error': 'Insufficient funds'}), 400
         # Check if receiver exists
-        query = f"SELECT amount FROM account WHERE username = '{receiver_username}'"
-        cursor.execute(query)
+        cursor.execute('SELECT amount FROM account WHERE username = ?', (receiver_username,))
         receiver_result = cursor.fetchone()
         if receiver_result is None:
             return jsonify({'error': 'Receiver does not exist'}), 404
         # Perform the transfer
         new_sender_amount = sender_result[0] - amount_to_transfer
         new_receiver_amount = receiver_result[0] + amount_to_transfer
-        query = f"UPDATE account SET amount = {new_sender_amount} WHERE username = '{sender_username}'"
-        cursor.execute(query)
-        query = f"UPDATE account SET amount = {new_receiver_amount} WHERE username = '{receiver_username}'"
-        cursor.execute(query)
+        cursor.execute('UPDATE account SET amount = ? WHERE username = ?', (new_sender_amount, sender_username))
+        cursor.execute('UPDATE account SET amount = ? WHERE username = ?', (new_receiver_amount, receiver_username))
         conn.commit()
     logger.debug("Send " + str(sender_username) + " to " + str(receiver_username) + " amount " + str(amount_to_transfer))
     return jsonify({
@@ -249,7 +242,6 @@ def get_balance():
         return jsonify({"error": "Authorization header is missing"}), 401
 
     token = authorization_header.split(" ")[1]  # Extracts the token part assuming 'Bearer <token>'
-    
     username = request.args.get('username')
     if not username:
         return jsonify({'error': 'Username is required'}), 400
@@ -262,10 +254,8 @@ def get_balance():
     # Connect to database and fetch balance
     with get_db() as conn:
         cursor = conn.cursor()
-        query = f"SELECT amount FROM account WHERE username = '{username}'"
-        cursor.execute(query)
+        cursor.execute('SELECT amount FROM account WHERE username = ?', (username,))
         result = cursor.fetchone()
-        
     if result is None:
         return jsonify({'error': 'Username does not exist'}), 404
 
