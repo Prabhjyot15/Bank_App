@@ -17,9 +17,8 @@ logging.basicConfig(filename="server_logs.log",
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
-
+SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
 # Config File
-SECRET_KEY = "d929018b528135d836b863547d6cb33a"
 DB_URL = 'sqlite:///bank.db'
 DATABASE = './instance/bank.db'
 
