@@ -84,8 +84,9 @@ def create_new_user():
 
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username already exists"}), 409
-
-    new_user = User(username=username, password=password)
+    
+    # Hash the password before storing
+    new_user = User(username=username, password=hashlib.sha256(password.encode()).hexdigest())
     db.session.add(new_user)
     db.session.commit()
     createUserWithEmptyBalance(username)
@@ -98,7 +99,8 @@ def login():
     username = request.json['username']
     password = request.json['password']
 
-    user = User.query.filter_by(username=username, password=password).first()
+    # Hash the password before comparing
+    user = User.query.filter_by(username=username, password=hashlib.sha256(password.encode()).hexdigest()).first()
     if user:
         # Creates a jwt token with payload as username and password
         payload = {
@@ -106,10 +108,10 @@ def login():
             'exp': datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)  # Token expires in 1 hour
         }
         token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-        logger.debug("Successful login " + str(username) + str(password))
+        logger.debug("Successful login for user: " + username) #changed
         return jsonify({"message": "Login successful", "token": token}), 200
     else:
-        logger.debug("Invalid login " + str(username) + str(password))
+        logger.debug("Invalid login attempt for user: " + username) #changed
         return jsonify({"error": "Invalid credentials"}), 401
 
 # API endpoint to check if a username exists
